@@ -1,0 +1,6 @@
+[submodule "Bustub-2022"]
+	path = Bustub-2022
+	url = git@github.com:n0twhy/bustub-private.git
+[submodule "project/database2022fall"]
+	path = project/database2022fall
+	url = git@github.com:n0twhy/bustub-private.git
