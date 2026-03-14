@@ -14,3 +14,8 @@ push_back则是要经历一次拷贝，再移动
 
 [dynamic_cast](../../project/database2022fall/src/include/primer/p0_trie.h#462)
 如果不成功  会返回nullptr，这里需要检查一下
+
+[shared_lock](../../project/database2022fall/src/include/common/rwlatch.h)
+.lock():拿到写锁
+.lock_shared()拿到读锁
+另一种类:unique_lock是自动析构的

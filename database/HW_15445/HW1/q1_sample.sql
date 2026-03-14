@@ -1,0 +1,5 @@
+-- Active: 1773156550069@@127.0.0.1@3306
+SELECT DISTINCT(language)
+FROM akas
+ORDER BY language
+LIMIT 10;
