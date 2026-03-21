@@ -37,10 +37,10 @@
  class Solution {
  public:
      struct ListNode {
-         int val;
-         ListNode* next;
-         ListNode() : val(0), next(nullptr) {}
-         ListNode(int v) : val(v), next(nullptr) {}
+      int val;
+      ListNode* next;
+      ListNode() : val(0), next(nullptr) {}
+      ListNode(int v) : val(v), next(nullptr) {}
      };
      ListNode* linkedListCycle(ListNode* head) {
          unordered_set<ListNode*> mp;
@@ -53,41 +53,41 @@
              }
              tail = tail->next;
              
-         }
+         }  
          return nullptr;
          
      }
  };
  
- int main() {
-     int n;
-     cin >> n;
-     vector<int> list(n);
-     for(int i = 0; i < n; ++i) {
-         cin >> list[i];
-     }
-     Solution::ListNode* tail = new Solution::ListNode(list[n-1]);
-     Solution::ListNode* head = tail;
-     for(int i = n - 2; i >= 0; --i) {
-         Solution::ListNode* node = new Solution::ListNode(list[i]);
-         node->next = head;
-         head = node;
-     }
-     int pos;
-     cin >> pos;
-     Solution::ListNode* curr = head;
-     if(pos != -1) {
-         while(pos) {
-             curr = curr->next;
-             pos--;
-         }
-         tail->next = curr;
-     }
-     Solution sol;
-     Solution::ListNode* res = sol.linkedListCycle(head);
-     if(res) {
-         cout << res->val << endl;
-     }else {
-         cout << -1 << endl;
-     }
- }
+int main() {
+  int n;
+  cin >> n;
+  vector<int> list(n);
+  for(int i = 0; i < n; ++i) {
+      cin >> list[i];
+  }
+  Solution::ListNode* tail = new Solution::ListNode(list[n-1]);
+  Solution::ListNode* head = tail;
+  for(int i = n - 2; i >= 0; --i) {
+      Solution::ListNode* node = new Solution::ListNode(list[i]);
+      node->next = head;
+      head = node;
+  }
+  int pos;
+  cin >> pos;
+  Solution::ListNode* curr = head;
+  if(pos != -1) {
+      while(pos) {
+          curr = curr->next;
+          pos--;
+      }
+      tail->next = curr;
+  }
+  Solution sol;
+  Solution::ListNode* res = sol.linkedListCycle(head);
+  if(res) {
+      cout << res->val << endl;
+  }else {
+      cout << -1 << endl;
+  }
+}
