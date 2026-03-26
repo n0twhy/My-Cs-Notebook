@@ -62,23 +62,96 @@ requires[j] 表示编号 j（j <= 1e5）的人的需求车数，约束为：
 */
 
 #include <bits/stdc++.h>
+#include <cstdio>
+#include <iostream>
+#include <sstream>
 using namespace std;
 
 class Solution {
-	pair<int, int> allocation(vector<int> cars, vector<int> people) {
+public:
+	int allocate(vector<int>& requires, int k) {
+		int l = 0;
+		int sum = 0;
+		int max_len = 0;
+		int bestL = 0, bestR = 0;
+		int size = requires.size();
+
+		for (int r = 0; r < requires.size(); ++r) {
+			sum += requires[r];
+			
+			while (l <= r && sum > k) {
+				sum -= requires[l];
+				l++;
+			}
+
+			int curr_len = r - l + 1;
+			if (curr_len > max_len) {
+				bestL = l;
+				bestR = r;
+				max_len = curr_len;
+			}	
+		}
+
+		if (max_len == 0) return 0;
+
+		for (int i = bestL, j = bestR + 1; j < requires.size(); ++i, ++j) {
+			requires[i] = requires[j];
+		}
+		requires.resize(size - max_len);
+
+		return max_len;
+	}
+
+	pair<int, int> allocation(vector<int> &cars, vector<int> requires) {
 		queue<int> q;
 		int allocate_times = 0;
-		int rest_people = people.size();
+		int rest_people = requires.size();
 
 		for (int i = 0; i < cars.size(); ++i) {
 			q.push(cars[i]);
 		}
-		int curr = 0;
+		int k = 0;
 		while (!q.empty()) {
-			curr = q.front();
+			k = q.front();
 			q.pop();
-
-			
+			int len = allocate(requires, k);
+			while (len == 0 && !q.empty()) {
+				k += q.front();
+				q.pop();
+				len = allocate(requires, k);
+			}
+			if (len != 0) {
+				allocate_times++;
+				rest_people -= len;
+			}
 		}
+
+		return {allocate_times, rest_people};
 	}
+};
+
+int main() {
+	vector<int> cars;
+	vector<int> requires;
+
+	string input;
+	getline(cin, input);
+	stringstream ss(input);
+	int n;
+	
+	while (ss >> n) {
+		cars.emplace_back(n);
+	}
+
+	getline(cin, input);
+	ss.clear();
+	ss.str(input);
+
+	while (ss >> n) {
+		requires.emplace_back(n);
+	}
+
+	Solution sol;
+	pair<int, int> res = sol.allocation(cars, requires);
+	cout << res.first << " " << res.second << endl;
 }
