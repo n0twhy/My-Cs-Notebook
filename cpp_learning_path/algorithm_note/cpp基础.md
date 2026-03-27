@@ -13,4 +13,5 @@ this是当前这个对象的指针，返回当前对象的话，return *this
 运算符重载：operator*、operator++、operator== 是特殊命名的成员函数，编译器自动将 *it、++it、a == b 翻译为对应函数调用
 Past-the-end 语义：End() 不指向最后一个元素，而是"越过末尾"的哨兵，和 STL 一致。默认构造（leaf_=nullptr）即为 end
 
-
+[text](../../algorithm/huawei/模拟/海量日志抑制.cpp)
+log.find是返回size_t类型的下标
