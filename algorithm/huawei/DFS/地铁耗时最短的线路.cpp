@@ -65,8 +65,136 @@ f b c d e k
 */
 
 #include <bits/stdc++.h>
+#include <climits>
+#include <iterator>
 using namespace std;
 
-int main() {
-    return 0;
-}
+/*class Solution {
+public:
+	vector<char> MinimalPath(int station_count, char start, char end, vector<string> stations) {
+		unordered_map<char, vector<pair<int, char>>> mp;
+		vector<int> dijkstra(26, INT_MAX);
+		unordered_set<char> mark; 
+		vector<char> prev(26);
+		priority_queue<pair<int, char>, vector<pair<int, char>>, greater<pair<int, char>>> pq;
+
+		dijkstra[start - 'a'] = 0;
+
+		for (auto& s : stations) {
+			stringstream ss(s);
+			char c;
+			ss >> c;
+			char next;
+			ss >> next;
+			int distance;
+			ss >>distance;
+			mp[c].emplace_back(distance, next);
+			mp[next].emplace_back(distance, c);
+		}
+
+		for (auto &[distance, next_station] : mp[start]) {
+			pq.push({distance, next_station});
+			dijkstra[next_station - 'a'] = distance;
+			prev[next_station - 'a'] = start;
+		}
+		mark.insert(start);
+
+
+		for (int i = 0; i < station_count - 1 && !pq.empty(); ++i) {
+			char curr_c = pq.top().second;
+			pq.pop();
+			for (auto &[distance, next_station] : mp[curr_c]) {
+				if (mark.count(next_station)) continue;
+				if (dijkstra[next_station - 'a'] > dijkstra[curr_c - 'a'] + distance) {
+					dijkstra[next_station - 'a'] = 	dijkstra[curr_c - 'a'] + distance;
+					prev[next_station - 'a'] = curr_c;
+					pq.push({distance, next_station});
+				}
+			}
+			mark.insert(curr_c);
+		}
+
+		vector<char> path;
+		char curr = end;
+		while (curr != start) {
+			path.insert(path.begin(), curr);
+			curr = prev[curr - 'a'];
+		}
+		path.insert(path.begin(), start);
+
+		return path;
+	}
+};
+*/
+
+class Solution {
+public:
+	void dfs(char curr, char end, vector<char> &path, vector<bool> &visited, int cost) {
+		if (curr == end) {
+			if (cost < best_cost_) {
+				best_cost_ = cost;
+				best_path_ = path;
+			}
+			return;
+		}
+
+		for (auto &[distance, next_station] : mp[curr]) {
+			if (visited[next_station - 'a']) continue;
+			visited[next_station - 'a'] = true;
+			path.push_back(next_station);
+			dfs(next_station, end, path, visited, cost +distance);
+			path.pop_back();
+			visited[next_station - 'a'] = false;
+		}
+	}
+	vector<char> MinimalPath(int station_count, char start, char end, vector<string> stations) {
+		for (auto& s : stations) {
+			stringstream ss(s);
+			char c;
+			ss >> c;
+			char next;
+			ss >> next;
+			int distance;
+			ss >>distance;
+			mp[c].emplace_back(distance, next);
+			mp[next].emplace_back(distance, c);
+		}
+
+		vector<bool> visited(26, false);
+		visited[start - 'a'] = true;
+		vector<char> path;
+		path.push_back(start);
+		dfs(start, end, path, visited, 0);
+
+		return best_path_;
+	}
+
+private:
+	unordered_map<char, vector<pair<int, char>>> mp;
+	int best_cost_{INT_MAX};
+	vector<char> best_path_;
+};
+
+
+
+	int main() {
+		int n;
+		cin >> n;
+		char start, end;
+		cin >> start >> end;
+		cin.ignore();
+		
+		string input;
+		vector<string> stations;
+		while (getline(cin, input)) {
+			if (input == "0000") break;
+			stations.emplace_back(input);
+		}
+
+		Solution sol;
+		vector<char> path = sol.MinimalPath(n, start, end, stations);
+
+		for (int i = 0; i < path.size(); ++i) {
+			cout <<path[i] << " ";
+		}
+	}

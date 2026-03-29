@@ -50,8 +50,81 @@
 */
 
 #include <bits/stdc++.h>
+#include <charconv>
+#include <cstdlib>
 using namespace std;
 
+class Solution {
+public:
+  struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int v): val(v), left(nullptr), right(nullptr) {};
+  };
+
+  TreeNode *FindAncestor(TreeNode *root, int a, int b) {
+    if (root->val == a || root->val == b) {
+      return root;
+    }
+    TreeNode *tmp_left = nullptr;
+    TreeNode *tmp_right = nullptr;
+    if(root->left) tmp_left = FindAncestor(root->left, a, b);
+    if(root->right) tmp_right = FindAncestor(root->right, a, b);
+    TreeNode *res = nullptr;
+    if (tmp_left || tmp_right) {
+      if (tmp_left && tmp_right) return root;
+      res = tmp_left == nullptr ? tmp_right : tmp_left;
+      return res;
+    } else {
+      return nullptr; 
+    }
+  }
+
+  int ChildrenCount(TreeNode *root) {
+    int size = 1;
+    if (root->left) size += ChildrenCount(root->left);
+    if (root->right) size += ChildrenCount(root->right);
+    return size;
+  }
+
+  int SuperVisor(TreeNode *root, int a, int b) {
+    auto supervisor = FindAncestor(root, a, b);
+    int res = ChildrenCount(supervisor);
+    return res - 1;
+  }
+};
+
+
 int main() {
-    return 0;
+  int n;
+  cin >> n;
+  vector<int> staff(n);
+  for (int i = 0; i < n; ++i) {
+    cin >> staff[i];
+  }
+  auto root = new Solution::TreeNode(staff[0]);
+  queue<pair<Solution::TreeNode *, int>> q;
+  q.push({root, 0});
+  while (!q.empty()) {
+    auto [curr_node, pos] = q.front();
+    q.pop();
+    int left = 2 * pos + 1;
+    int right = 2 * pos + 2;
+    if (left < n && staff[left] != -1) {
+      curr_node->left = new Solution::TreeNode(staff[left]);
+      q.push({curr_node->left, left});
+    }
+    if (right < n && staff[right] != -1) {
+      curr_node->right = new Solution::TreeNode(staff[right]);
+      q.push({curr_node->right, right});
+    }
+  }
+  int a, b;
+  cin >> a >> b;
+  Solution sol;
+  int res = sol.SuperVisor(root, a, b);
+  cout << res << endl;
 }

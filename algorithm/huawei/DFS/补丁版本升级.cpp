@@ -50,8 +50,67 @@ BF0001 和 BF00011 的前序版本为 AZ0001，各迭代了 1 次；
 */
 
 #include <bits/stdc++.h>
+#include <vector>
 using namespace std;
 
+class Solution {
+public:
+	int dfs(string& curr_edition) {
+		string prev_edition = mp[curr_edition];
+		if (prev_edition == "NA") return 0;
+		
+		int size = 1;
+		size += dfs(prev_edition);
+		
+		return size;
+	}
+
+	vector<string> PrevEdition(vector<pair<string, string>> &editions) {
+		vector<pair<int, string>> iter_cnt;
+		for (auto &[edition, prev_edition] : editions) {
+			mp[edition] = prev_edition; 
+		}
+		for (auto &[edition, prev_edition] : editions) {
+			int size = dfs(edition);
+			iter_cnt.emplace_back(size, edition);
+		}
+		sort(iter_cnt.begin(), iter_cnt.end(), [](const pair<int, string> &a, const pair<int, string> &b){
+			if (a.first != b.first) return a.first > b.first;
+			return a.second < b.second;
+		});
+
+		vector<string> res;
+		res.push_back(iter_cnt[0].second);
+		int i = 1;
+		while (i < iter_cnt.size() && iter_cnt[i].first == iter_cnt[i - 1].first) {
+			res.push_back(iter_cnt[i].second);
+			++i;
+		}
+		return res;
+	}
+private:
+	map<string, string> mp;
+};
 int main() {
-    return 0;
+    int n;
+		cin >> n;
+		cin.ignore();
+		vector<pair<string, string>> editions;
+		
+		for (int i = 0; i < n; ++i) {
+			string input;
+			getline(cin, input);
+			stringstream ss(input);
+			string curr, prev;
+			ss >> curr >> prev;
+			editions.emplace_back(curr, prev);
+		}
+
+
+		Solution sol;
+		vector<string> res = sol.PrevEdition(editions);
+
+		for (int i = 0; i < res.size(); ++i) {
+			cout << res[i] << " ";
+		}
 }

@@ -61,8 +61,67 @@ b) 线路 4（15->7），在 7 换乘线路 5（经 7->3->12->13），花费 3+1
 */
 
 #include <bits/stdc++.h>
+#include <climits>
+#include <unordered_map>
 using namespace std;
 
+class Solution {
+public:
+	void dfs(int u) {
+		for (auto [v, w] : graph[u]) {
+			if (dp[u] + w > budget) continue;
+			if (dp[u] + w >= dp[v]) {
+				continue;
+			} else {
+				dp[v] = dp[u] + w;
+				dfs(v);
+			}
+		}
+	}
+	int DenshaRegulation(vector<vector<int>> &lines, int start, int end, int money) {
+		budget = money;
+		for (auto &line : lines) {
+			int price = line[0];
+			for (int i = 2; i < line.size(); ++i) {
+				for (int j = 2; j < line.size(); ++j) {
+					if (i == j) continue;
+					graph[line[i]].emplace_back(line[j], price);
+				}
+				dp[line[i]] = INT_MAX;
+			}
+		}
+		dp[start] = 0;
+		dfs(start);
+		if (dp[end] == INT_MAX || dp[end] > budget) return -1;
+		return dp[end];
+	}
+
+private:
+	unordered_map<int, vector<pair<int, int>>> graph;
+	unordered_map<int, int> dp;
+	int budget {0};
+};
+
 int main() {
-    return 0;
+  int m, x, y ,z;
+	cin >> m >> x >> y >> z;
+	vector<vector<int>> lines;
+
+	for (int i = 0; i < m; ++i) {
+		int price, station_cnt;
+		cin >> price >> station_cnt;
+		vector<int> line;
+		line.push_back(price);
+		line.push_back(station_cnt);
+		for (int j = 0; j < station_cnt; ++j) {
+			int tmp;
+			cin >> tmp;
+			line.emplace_back(tmp);
+		}
+		lines.push_back(line);
+	}
+	Solution sol;
+	int res = sol.DenshaRegulation(lines, x, y, z);
+	cout << res << endl;
+	
 }

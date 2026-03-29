@@ -15,3 +15,9 @@ Past-the-end 语义：End() 不指向最后一个元素，而是"越过末尾"�
 
 [text](../../algorithm/huawei/模拟/海量日志抑制.cpp)
 log.find是返回size_t类型的下标
+
+[优先队列](../../algorithm/huawei/DFS/地铁耗时最短的线路.cpp)
+priority_queue<pair<int, char>, vector<pair<int, char>>, greater<pair<int, char>>>
+第一个传参就是元素类型
+第二传参是优先队列的底层容器，一般是vector
+第三个传参就是比较器，有greater（小顶堆）和less（大顶堆），也可以自己设置struct cmp比较器

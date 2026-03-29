@@ -33,8 +33,68 @@
 */
 
 #include <bits/stdc++.h>
+#include <iterator>
 using namespace std;
 
+class Solution {
+public:
+	int dfs(int u) {
+		int size = 1;
+
+		for (int i = 0; i < children_[u].size(); ++i) {
+			size += dfs(children_[u][i]);
+		}
+		subtree_size_[u] = size - 1;
+		return size;
+	}
+	vector<int> CloudServers(vector<int> &cloud_servers) {
+		subtree_size_.resize(cloud_servers.size());
+		children_.resize(cloud_servers.size());
+		for (int i = 0; i < cloud_servers.size(); ++i) {
+			if (cloud_servers[i] == -1) continue;
+			children_[cloud_servers[i]].emplace_back(i);
+		}
+		vector<pair<int, int>> res(cloud_servers.size());
+		
+		for (int i = 0; i < cloud_servers.size(); ++i) {
+			if (cloud_servers[i] == -1) {
+					dfs(i);
+			}
+	}
+		
+		for (int i = 0; i < cloud_servers.size(); ++i) {
+			res[i] = {i, subtree_size_[i]};
+		}
+
+		sort(res.begin(), res.end(), [](const pair<int, int>& a, const pair<int, int>& b){
+			if (a.second != b.second) return a.second > b.second;
+			return a.first < b.first;
+		});
+
+		vector<int> ans;
+		for (auto &[node, dist] : res) {
+			ans.emplace_back(node);
+		}
+		return ans;
+
+		
+	}
+private:
+	vector<vector<int>> children_;
+	vector<int> subtree_size_;
+};
+
 int main() {
-    return 0;
+	int n;
+	cin >> n;
+	vector<int> input(n);
+	for (int i = 0; i < n; ++i) {
+		cin >> input[i];
+	}
+
+	Solution sol;
+	vector<int> res = sol.CloudServers(input);
+	for (int i = 0; i < res.size(); ++i) {
+		cout << res[i] << " ";
+	}
 }
