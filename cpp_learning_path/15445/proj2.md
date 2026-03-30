@@ -90,5 +90,13 @@ operator!=的实现有问题
 operator!= 的实现应该加一层，如果两个的leaf都是nullptr，直接返回false
 成功
 
+std::vector<ValueType> dummy;
+  bool is_dup = GetValue(key, &dummy);  
+  if (is_dup) return false;
+Insert里调用getvalue是找死，他们都会调用root_latch，分分钟死锁
+
+ReleaseAnccestor函数， 里面全部是unpin（false），然后split很可能会递归上去，修改父亲，这完全不对。我需要set当前的page是脏页
+
+优化一下io，遇到父节点有改动，就直接处理脏页
 
 
