@@ -47,8 +47,52 @@
 */
 
 #include <bits/stdc++.h>
+#include <climits>
+#include <vector>
 using namespace std;
 
+int dx[4] = {-1, 1, 0, 0};
+int dy[4] = {0, 0, -1, 1};
+
+class Solution {
+public:
+  int MaximalLength(vector<vector<int>> &instance) {
+    int res = INT_MIN;
+    int m = instance.size(), n = instance[0].size();
+    function<void(int, int, int, int, int&)> dfs = [&](int x, int y, int curr_length, int curr_height, int &res) {
+      res = max(res, curr_length);
+      for (int i = 0; i < 4; ++i) {
+        int cx = x + dx[i];
+        int cy = y + dy[i];
+
+        if (cx >= 0 && cx < m && cy >= 0 && cy < n && instance[cx][cy] > curr_height ) {
+          int height_backup = instance[cx][cy];
+          instance[cx][cy] = INT_MIN;
+          dfs(cx, cy, curr_length + 1, height_backup, res);
+          instance[cx][cy] = height_backup;
+        }
+      }
+    };
+    int ans = INT_MIN;
+    for (int i = 0; i < m; ++i) {
+      for (int j = 0; j < n; ++j) {
+        int curr_res = 0;
+        dfs(i, j, 1, instance[i][j], curr_res);
+        ans = max(ans, curr_res);
+      }
+    }
+    return ans;
+  }
+};
 int main() {
-    return 0;
+    int m, n;
+    cin >> m >> n;
+    vector<vector<int>> instance(m, vector<int>(n));
+    for (int i = 0; i < m; ++i) {
+      for (int j = 0; j < n; ++j) {
+        cin >> instance[i][j];
+      }
+    }
+    Solution sol;
+    cout << sol.MaximalLength(instance) << endl;
 }

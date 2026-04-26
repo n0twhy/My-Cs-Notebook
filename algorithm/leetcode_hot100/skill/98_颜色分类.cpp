@@ -40,6 +40,7 @@
  */
 
  #include <bits/stdc++.h>
+#include <utility>
  using namespace std;
 
 class Solution {
@@ -49,16 +50,23 @@ class Solution {
     int low = 0;
     int high = colors.size() - 1;
 
-    while (mid <= high) {
+    while (low <= high && mid <= high) {
       if (colors[mid] == 1) {
         mid++;
-      } else if (colors[mid] == 0) {
+        continue;
+      }
+
+      if (colors[mid] == 0) {
         swap(colors[low], colors[mid]);
         low++;
         mid++;
-      } else if (colors[mid] == 2) {
-        swap(colors[mid], colors[high]);
+        continue;
+      }
+
+      if (colors[mid] == 2) {
+        swap(colors[high], colors[mid]);
         high--;
+        continue;
       }
     }
 

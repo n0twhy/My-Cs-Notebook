@@ -35,8 +35,7 @@
  *
  * =============================================================================
  */
-#include <vector>
-#include <iostream>
+#include <bits/stdc++.h>
 
 using namespace std;
 class Solution {
@@ -47,14 +46,17 @@ public:
       sum += i;
     }
 
-    if(sum % 2) return false;
+    if(sum % 2) {
+      return false;
+    }
 
     sum /= 2;
+    
     vector<bool> dp(sum + 1, false);
     dp[0] = true;
     for (int& num : nums) {
       for (int j = sum; j >= num; --j) {
-        dp[j] = dp[j - num]; 
+        dp[j] = dp[j - num] || dp[j];
       }
     }
     return dp[sum];
@@ -62,11 +64,13 @@ public:
 };
 
 int main() {
+  string input;
+  getline(cin, input);
+  stringstream ss(input);
+  vector<int> nums;
   int n;
-  cin >> n;
-  vector<int> nums(n);
-  for (int i = 0; i < n; ++i) {
-    cin >> nums[i];
+  while (ss >> n) {
+    nums.emplace_back(n);
   }
   Solution sol;
   bool res = sol.split(nums);

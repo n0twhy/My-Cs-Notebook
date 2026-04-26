@@ -1,30 +1,46 @@
-[std::list](../../project/database2022fall/src/include/container/hash/extendible_hash_table.h#L166)
-std::list<T> lst  默认是一个双链表容器
-lst.empty()
-lst.size()
-lst.front()
-lst.back()
-lst.begin()
-lst.end()
-push_back push_front pop_back  pop_front  insert(it, x)//在迭代器it前插入x  erase(it) 删除迭代器指向的元素，返回下一个迭代器
-如果要找某个值 用迭代器循环或者find
-[](../../project/database2022fall/src/include/container/hash/extendible_hash_table.h#232)
-这里就是经典用法，如果删除了it，又使用++it，会访问非法内存
+## elevator pitch
+实现了proj1的三大核心组件：
+`extendible_hashmap`
+`lruk_replacer`
+`bufferpoolmanager`
 
+## 1.整体架构与职责划分
 
-[位运算符](../../project/database2022fall/src/container/hash/extendible_hash_table.cpp#L30)
-1 << global_depth_是将"1"左移"global_depth"位
+数据路径
+`DiskManager <-> BufferPoolManager <-> Page(frame) <-> 上层执行器`
 
-[扩容机制](../../project/database2022fall/src/include/container/hash/extendible_hash_table.h)
-可以直接pushback  因为如果加1位，比如2->3，如果是01，那么同理的会有（101，001）所以101的也会指向这个桶，那么就简单了，直接push_back,非常优雅
+BPM内部三件套：
+`page_table` : `page_id -> frame` 方便定位
+`free_list`:从未使用过的frame
+`replacer`:LRUK
 
-成员变量在初始化列表中的顺序与他们在类中的声明的顺序应该一致
+### 关键变量
+`pin_count`
+`replacer.size()`
+`page_id` <-> `frame_id`
 
-[friend](../../project/database2022fall/src/include/storage/page/page.h#L30)
-关键字用于可以访问当前类的私有成员,或者protected
+## Extendible Hash Table
 
-[new Page[pool_size]](../../project/database2022fall/src/buffer/buffer_pool_manager_instance.cpp#L24)
-这里相当于vector<Page> pages_(pool_size)
+### 核心机制：
+- 目录索引: Hash(key) & (1 << global_size - 1)
+- 桶满触发分裂，如果bucket_size == global_size，global_size也要double
 
-[内存泄漏](../../project/database2022fall/src/buffer/buffer_pool_manager_instance.cpp#L62)
-这里的指针指向已有的内存，可以不delete，等析构统一释放这片内存，不会发生内存泄漏，指针本身是存在全局变量栈
+###  为什么使用这种结构
+- 桶满时做**局部扩容**，比全局 rehash 更可控
+
+### tradeoff 
+- 优点：扩容优雅，平滑，查询均摊
+- 实现复杂 
+
+## LRUK Replacer
+
+### 算法语义
+- 仅仅从evictable里选择挑中victim来进行evict
+- 访问次数小于l的k-distance视为inf
+
+### 数据结构
+- cold_list
+- hot_list
+
+### why LRUK
+- 避免缓存污染
