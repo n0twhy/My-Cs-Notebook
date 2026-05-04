@@ -44,6 +44,48 @@
 在第 2 个服务区和第 3 个服务区休息，总花费为 2 + 2 = 4，最少。
 */
 
+#include <bits/stdc++.h>
+#include <vector>
+using namespace std;
+
+int main() {
+  int n, m; cin >> n >> m;
+  vector<int> stations(n);
+  for (int i = 0; i < n; ++i) {
+    cin >> stations[i];
+    cout << stations[i] << " ";
+  }
+
+  vector<int> dp(n, 0x3f3f3f3f);
+  
+  for (int i = 0; i < n; ++i) {
+    if (i < m) {
+      dp[i] = stations[i];
+      continue;
+    }
+    
+    for (int j = 1; j <= m; ++j) {
+      dp[i] = min(dp[i], dp[i - j] + stations[i]);
+    }
+  }
+
+  for (int i = 0; i < n; ++i) {
+    cout << dp[i] << " ";
+  }
+  cout << "\n";
+  
+
+  int ans = 0x3f3f3f3f;
+  for (int i = 1; i <= m; ++i) {
+    ans = min(ans, dp[n - i]);
+    cout << "dp[" << n - i << "]: " << dp[n - i] << endl;
+    cout << ans << endl;
+  }
+  cout << ans << endl;
+}
+
+
+/*
 #include <bits/stdc++.h> 
 #include <climits>
 using namespace std;
@@ -81,3 +123,5 @@ int main() {
   Solution sol;
   cout << sol.minimalconsume(servers, n);
 }
+
+*/

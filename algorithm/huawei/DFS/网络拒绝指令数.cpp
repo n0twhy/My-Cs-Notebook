@@ -53,6 +53,64 @@ Line3 ~ Line(X+2)：
 */
 
 #include <bits/stdc++.h>
+using namespace std;
+
+vector<int> fa;
+
+void init(vector<int> &fa) {
+  for (int i = 0; i < fa.size(); ++i) {
+    fa[i] = i;
+  }
+}
+
+int find(int x) {
+  return fa[x] == x ? x : fa[x] = find(fa[x]);
+}
+
+void unit(int x, int y) {
+  fa[find(x)] = find(y);
+}
+
+int main() {
+  int n, m, x;
+  cin >> n >> m >> x;
+
+  vector<bool> has_mutex(n, false);
+  for (int i = 0; i < m; ++i) {
+    int tmp;
+    cin >> tmp;
+    has_mutex[tmp] = true;
+  }
+
+  fa.resize(n);
+  init(fa);
+
+  int cnt = 0;
+
+  while (x--) {
+    int x, y;
+    cin >> x >> y;
+
+    auto rootx = find(x);
+    auto rooty = find(y);
+    cout << x << " " << y << " : " << rootx << " " << rooty << endl;
+    if (rootx != rooty) {
+      if (has_mutex[rootx] && has_mutex[rooty]) {
+        cnt++;
+      } else {
+        unit(x, y);
+        has_mutex[rooty] = has_mutex[rooty] || has_mutex[rootx];
+      }
+    }
+  }
+
+  cout << cnt << endl;
+  
+}
+
+
+/*
+#include <bits/stdc++.h>
 #include <cstddef>
 #include <utility>
 #include <vector>
@@ -117,3 +175,4 @@ int main() {
   Solution sol;
   cout << fixed << setprecision(1) << double(sol.rejectcnt(n, mutex_nodes, commands));
 }
+*/

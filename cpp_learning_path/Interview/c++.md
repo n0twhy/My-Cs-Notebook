@@ -1,4 +1,4 @@
-## 指针 & 引用
+# 指针 & 引用
 指针本身的大小是8字节
 
 空指针：指针指向一个内存空间，内存空间被释放，就会成为悬空指针
@@ -6,11 +6,17 @@
 
 指针原本在内存中是占有空间的，而引用不会占空间，相当于变量的别名
 
-### 常量指针 指针常量
+## 常量指针 指针常量
 const int *a：a指向的对象不能被修改
 int const *b：b本身不能被修改
 
-## 内存分区：全局、静态、栈、堆
+## 四种cast
+`dynamic_cast` (运行时，其他都是编译时) 多态类型的向下转换 安全
+`static_cast` 已知安全的类型转换
+`const_cast` 去掉const volatile修饰
+`reinterpret_cast` 及其危险，bit级重新解释
+
+# 内存分区：全局、静态、栈、堆
 高地址
 +---------------------------+
 |          stack            |  ← 局部变量、函数栈帧（一般向低地址增长）
@@ -41,30 +47,30 @@ void foo() {
   delete p;
 }
 
-### static vs 全局变量
+## static vs 全局变量
 - static全局变量只能在本文件内被访问，作用域是文件内部
 而普通全局变量，可以通过extern访问，作用域是整个程序
 - static在类中声明的成员属于类本身而不是对象，被所有对象共享，且不可通过实例直接访问
 
-### sizeof() 和 strlen
+## sizeof() 和 strlen
 - sizeof返回类型或变量所占字节数，测的是分配大小，strlen测的是实际大小
 - C中对空结构体sizeof(struct {})结果是0，cpp中空类是1，保证每个对象都有唯一地址
 
-### void*
+## void*
 无类型指针，可以用来表示指向任何类型的指针
 但是因为他属于无类型，所以不能解引用
 
 
-### define const typedef
+## define const typedef
 define是在预处理阶段，const是在编译阶段
 define不进行类型的安全检查
 define使用的是代码段的空间
 define还可以定义常量，typedef只能重新为类型取名
 
-### volatile
+## volatile
 有些值可能会被该线程以外的程序改变，比如另一个线程，或者硬件中断来改变，但是如果不用volatile，编译器会对其进行优化，导致在寄存器里运行
 但是本身并不原子
-#### 原子性
+### 原子性
 硬件级指令，把对应内存锁死，决不允许插队
 
 # C++编译
@@ -94,8 +100,29 @@ define还可以定义常量，typedef只能重新为类型取名
 同名函数，不同传参就是重载
 override就是，同名函数，同样的传参，重写
 
+## vptr vtable
+vptr在栈上，vtable在只读数据段，程序级别唯一
 
 # 类
+class Foo {
+  Foo(); //构造
+  ~Foo(); //析构
+  Foo(const Foo&); //拷贝构造
+  Foo& operator=(const Foo&); //拷贝赋值
+  Foo(Foo&&); //移动构造
+  Foo& operator(Foo&&); //移动赋值
+}
+
+一个都不写，生成什么？
+6个default
+如果自己写了析构函数，移动构造和移动赋值不会生成，剩下的为default
+why
+因为自定义析构了，可能设计到资源管理，不能乱写移动
+
+只要写一个特殊成员函数，都会抑制默认构造
+写析构，拷贝构造，拷贝赋值，都会抑制移动语义
+写移动构造或者移动赋值，会让拷贝变成delete
+
 ## 空类
 - 空类的sizeof()一样是1，因为每个类对象都必须是唯一，也就是在内存上有单独的一个空间，如果为0就违背了这一原则。
 - 只含虚函数的类通常只有8字节，because of vptr。虚函数表在全局静态区，唯一
@@ -247,3 +274,61 @@ new是类型安全的，malloc返回void* 指针
 
 # 并发与多线程
 
+## lock到底发生了什么
+m.lock()底层调用pthread_mutex_lock
+先做一次CAS(mutex_state, 0, 1)，如果锁是空的，直接抢到
+如果没有抢到，state标志位有竞争
+调用futex(addr, FUTEX_WAIT, expected_value) syscall
+
+进入内核态：
+检查addr是否为expected_value
+内核把task挂到一个哈希桶里，
+线程状态由task_running改为task_interruptible
+调用schedule,让出CPU
+
+## lock_guard unique_lock scope_lock
+单锁单场景：最简单，`lock_guard`
+单锁，但是要自己unlock的情况，`unique_lock`：比上边多一个标志位
+多锁同时持有，`scope_lock`
+
+## condition_variable
+### 为什么必须要mutex -> 丢失唤醒
+因为为了避免丢失唤醒。比如条件是queue.empty()，被唤醒了，结果线程B进来写了queue，检查queue非空又睡了，丢失唤醒
+
+### 虚假唤醒
+内核因为某些信号，调度器扰动，可能会导致wait提前返回
+所以是while 而不是if
+
+## CAS
+bool CAS(T* addr, T expected, new_value) {
+  if (*addr = expected) {
+    *addr = new_value;
+    return true;
+  }
+  return false;
+}
+
+### 盲区
+CAS不能确定中间他有没有做过改动，比如expected = 1，如果本身已经改成2又变回来成1,了，CAS识别不出来
+
+# lambda
+本质：编译器生成的匿名类
+int x = 10;
+auto f = [x](int y) { return x + y; };
+f(5);
+对于编译器，本质上等于
+class __Lambda_xxx {
+private: 
+  int x_; // 捕获的变量
+public:
+  __Lambda_xxx(int x) : x_(x) {}
+  int operator()(int y) const {
+    return x + y;
+  }
+};
+[捕获列表](参数列表) mutable -> 返回类型 {}
+[a, b]拷贝捕获
+[&a, &b]引用捕获
+[=]按值捕获所有用到的外部变量
+[&]按引用捕获所有用到的外部变量
+[a, &b]混着来

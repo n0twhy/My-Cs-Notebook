@@ -78,6 +78,49 @@
 */
 
 #include <bits/stdc++.h>
+using namespace std;
+
+int MAX_NUM = 0x3f3f3f3f;
+
+int main() {
+  int n, k, b, m;
+  cin >> n >> k;
+  vector<int> streets(n);
+  for (int i = 0; i < n; ++i) {
+    cin >>streets[i];
+  }
+  cin >> b >> m;
+
+  vector<vector<int>> dp(n + 1, vector<int>(m + 1, MAX_NUM));
+  dp[0][0] = 0;
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j <= m; ++j) {
+      dp[i + 1][j] = min(dp[i + 1][j], dp[i][j] + streets[i]);
+
+      if (j < m) {
+        for (int x = 1; x <= k && i + x <= streets.size(); ++x) {
+          dp[i + x][j + 1] = min(dp[i + x][j + 1], dp[i][j] + x * b);
+        }
+      }
+    }
+  }
+
+  for (int i = 0; i < dp.size(); ++i) {
+    for (int j = 0; j < dp[i].size(); ++j) {
+      cout << dp[i][j] << " ";
+    }
+    cout << "\n";
+  }
+
+  int res = MAX_NUM;
+  for (int i = 0; i <= k; ++i) {
+    res = min(res, dp[n][i]);
+  }
+  cout << res << endl;
+}
+
+/*
+#include <bits/stdc++.h>
 #include <vector>
 using namespace std;
 
@@ -118,3 +161,4 @@ int main() {
   Solution sol;
   cout << sol.MinimalConsumption(k, b, m, community);
 }
+*/

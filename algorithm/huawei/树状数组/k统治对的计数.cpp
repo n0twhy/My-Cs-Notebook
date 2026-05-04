@@ -49,3 +49,61 @@
 (3,4): 7-1=6
 共 5 个。
 */
+
+#include <bits/stdc++.h>
+#include <vector>
+using namespace std;
+
+int lowbit(int x) {
+  return x & (-x);
+}
+
+void update(vector<int> &tree, int curr, int add) {
+  while (curr < tree.size()) {
+    tree[curr] += add;
+    curr += lowbit(curr);
+  }
+}
+
+int query(vector<int> &tree, int curr) {
+  int sum = 0;
+  while (curr > 0) {
+    sum += tree[curr];
+    curr -= lowbit(curr); 
+  }
+  return sum;
+}
+
+class Solution {
+public:
+  int CountK(vector<int> &nums, int k) {
+    int n = nums.size();
+    vector<int> tree(200002 + k, 0);
+    
+    for (int i = 0; i < nums.size(); ++i) {
+      nums[i] += 100001;
+    }
+
+    int res = 0;
+
+    for (auto num : nums) {
+      int search = k + num - 1;
+      res += query(tree, 200001 + k) - query(tree, search);
+      update(tree, num, 1);
+    }
+    return res;
+  }
+};
+
+int main() {
+  int n;
+  cin >> n;
+  vector<int> nums(n);
+  for (int i = 0; i < n; ++i) {
+    cin >> nums[i];
+  }
+  int k;
+  cin >> k;
+  Solution sol;
+  cout << sol.CountK(nums, k);
+}

@@ -74,6 +74,14 @@
 */
 
 #include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+  
+}
+
+/*
+#include <bits/stdc++.h>
 #include <exception>
 #include <vector>
 using namespace std;
@@ -134,3 +142,4 @@ int main() {
   Solution sol;
   cout << sol.BigPresent(days, months) << endl;
 }
+*/

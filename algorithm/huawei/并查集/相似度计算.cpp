@@ -43,3 +43,73 @@
 
 排序输出相似度之和，结果为：65 25
 */
+
+#include <algorithm>
+#include <bits/stdc++.h>
+#include <vector>
+using namespace std;
+
+vector<int> fa;
+
+void init() {
+  for (int i = 0; i < fa.size(); ++i) {
+    fa[i] = i;
+  }
+}
+
+int find (int x) {
+  return fa[x] == x ? x : fa[x] = find(fa[x]);
+}
+
+void unit(int x, int y) {
+  fa[find(x)] = find(y);
+}
+
+int main() {
+  int n;
+  cin >> n;
+  vector<vector<int>> grid(n, vector<int>(n));
+
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      cin >> grid[i][j];
+    }
+  }
+
+  fa.resize(n);
+  init();
+
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      if (grid[i][j] > 0) {
+        unit(i, j);
+      }   
+    }
+  }
+
+  unordered_map<int, vector<int>> groups;
+
+  for (int i = 0; i < fa.size(); ++i) {
+    int root = find(i);
+    groups[root].emplace_back(i);    
+  }
+  vector<int> res;
+  for (auto [idx, v] : groups) {
+    int cnt = 0;
+    for (int i = 0; i < v.size(); ++i) {
+      for (int j = i + 1; j < v.size(); ++j) {
+        cnt += grid[v[i]][v[j]];
+      }
+
+    }
+
+    res.emplace_back(cnt);
+  }
+
+  sort(res.begin(), res.end(), [](int &a, int &b){
+    return a > b;
+  });
+  for (int i = 0; i < res.size(); ++i) {
+    cout << res[i] << " ";
+  }
+}

@@ -61,7 +61,7 @@
 输出
 0 1 2
 */
-
+/*
 #include <bits/stdc++.h>
 #include <utility>
 #include <vector>
@@ -130,4 +130,68 @@ int main() {
   for (int i = 0; i < res.size(); ++i) {
     cout << res[i] << " ";
   }
+}
+*/
+#include <bits/stdc++.h>
+#include <random>
+#include <vector>
+using namespace std;
+
+int main() {
+  int n, x, k;
+  cin >> n >> x >> k;
+  
+  vector<pair<int, int>> letsgo(k);
+  for (int i = 0; i < k; ++i) {
+    cin >> letsgo[i].first;
+    letsgo[i].second = i;
+  }
+
+  int m; cin >> m;
+  vector<pair<int, int>> passengers(m);
+
+  for (int i = 0; i < m; ++i) {
+    cin >> passengers[i].first >> passengers[i].second;
+  }
+
+  sort(letsgo.begin(), letsgo.end());
+  sort(passengers.begin(), passengers.end(), [](pair<int, int> &a, pair<int, int> &b) {
+    return a.second < b.second;
+  });
+
+  vector<int> count(n, 0);
+  int diff = 0;
+  int left = 0;
+  int right = 0;
+
+  vector<int> res(k);
+
+  for (auto [start, idx] : letsgo) {
+    int end = start + x;
+    
+    while (right < passengers.size() && passengers[right].second < end) {
+      if (count[passengers[right].first]++ == 0) {
+        diff++;
+      }
+      right++;
+    }
+
+
+    while (left < passengers.size() && passengers[left].second < start) {
+      if (--count[passengers[left].first] == 0) {
+        diff--;
+      }
+      left++;
+    }
+
+    cout << "now " << start << ": " << end << " and diff: " << diff << endl;
+
+    res[idx] = diff;
+  }
+  
+  for (int i = 0; i < k; ++i) {
+    cout << res[i] << " ";
+  }
+
+  cout << "\n";
 }

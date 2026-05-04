@@ -48,3 +48,83 @@
 说明
 有两组匹配结果，即 "1 2" 和 "2 3"，存在重复实体 "2"，故可以合并为 "1 2 3"。
 */
+
+#include <bits/stdc++.h>
+#include <initializer_list>
+#include <vector>
+using namespace std;
+
+vector<int> fa;
+
+void init() {
+  for (int i = 0; i < fa.size(); ++i) {
+    fa[i] = i;
+  }
+}
+
+int find(int x) {
+  return fa[x] == x ? x : fa[x] = find(fa[x]);
+}
+
+void unit(int x, int y) {
+  fa[find(x)] = find(y);
+}
+
+int main() {
+  int n; cin >> n;
+  cin.ignore();
+  int count_id = 0;
+  unordered_map<string, int> mp;
+  vector<vector<string>> lists(n);
+  for (int i = 0; i < n; ++i) {
+    string input;
+    getline(cin, input);
+    stringstream ss(input);
+    string tmp;
+    while (ss >> tmp) {
+      lists[i].emplace_back(tmp);
+      if (!mp.count(tmp)) mp[tmp] = count_id++;
+    }
+  }
+
+  fa.resize(count_id);
+  init();
+
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < lists[i].size() - 1; ++j) {
+      int x = mp[lists[i][j]];
+      int y = mp[lists[i][j + 1]];
+      unit(x, y);
+    }
+  }
+
+  unordered_map<int, vector<string>> groups;
+  
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < lists[i].size(); ++j) {
+      int root = find(mp[lists[i][j]]);
+      groups[root].emplace_back(lists[i][j]);
+    }
+  }
+
+  vector<vector<string>> res;
+  for (auto [idx, group] : groups) {
+    res.emplace_back(group);
+  }
+
+  for (auto &v : res) {
+    sort(v.begin(), v.end());
+    v.erase(unique(v.begin(), v.end()), v.end());
+  }
+
+  sort(res.begin(), res.end());
+
+  for (int i = 0; i < res.size(); ++i) {
+    for (int j = 0; j < res[i].size(); ++j) {
+      cout << res[i][j] << " ";
+    }
+    cout << "\n";
+  }
+
+}
+

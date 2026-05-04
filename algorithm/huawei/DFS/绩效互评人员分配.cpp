@@ -63,56 +63,97 @@
 */
 
 #include <bits/stdc++.h>
-#include <unordered_map>
+using namespace std;
+
+int main() {
+  int n;
+  cin >> n;
+  
+  vector<vector<int>> graph(n);
+  vector<int> color(n, -1);
+  vector<vector<int>> res(2);
+  cin.ignore();
+  for (int i = 0; i < n; ++i) {
+    string input;
+    getline(cin, input);
+    stringstream ss(input);
+    int tmp;
+    while (ss >> tmp) {
+      graph[i].emplace_back(tmp);
+    }
+  }
+
+  color[0] = 0;
+  queue<int> q;
+  q.push(0);
+  res[color[0]].emplace_back(0);
+  while (!q.empty()) {
+    auto u = q.front();
+    q.pop();
+
+    for (auto v : graph[u]) {
+      if (color[v] == -1) {
+        color[v] = 1 - color[u];
+        q.push(v);
+        res[color[v]].emplace_back(v);
+      }
+      if (color[v] == color[u]) {
+        cout << -1 << endl;
+        return 0;
+      }
+    }
+  }
+
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < res[i].size(); ++j) {
+      cout << res[i][j] << " ";
+    }
+    cout << "\n";
+  }
+
+}
+
+
+
+/*
+#include <bits/stdc++.h>
+#include <vector>
 using namespace std;
 
 class Solution {
 public:
-  vector<vector<int>> AssignGroups(vector<vector<int>> employee) {
-    unordered_map<int, int> group;
+  vector<vector<int>> AssignGroups(vector<vector<int>>& employee) {
+    int n = employee.size();
+    vector<int> colors(n, -1);
     queue<int> q;
-    map<int, vector<int>> graph;
-
-    for (auto &v : employee) {
-      for (int i = 1; i < v.size(); ++i) {
-        graph[v[0]].emplace_back(v[i]);
-        cout << v[0] << " man: " << v[i] << " ";
-      }
-      cout << endl;
-    }
-
+    
     q.push(0);
-    group[0] = 0;
-    int curr_group = 0;
-    unordered_map<int, vector<int>> res;
-    res[0].emplace_back(0);
+    colors[0] = 0;
+
     while (!q.empty()) {
-      curr_group = (curr_group + 1) % 2;
-      cout << "current group: " << curr_group << endl;
-      int size = q.size();
-      for (int i = 0; i < size; ++i) {
-        int curr_man = q.front();
-        cout << "出队： " << curr_man << endl;
-        q.pop();
-        for (auto &neighbor : graph[curr_man]) {
-          cout << "neighbor: " << neighbor << endl;
-          if (!group.count(neighbor)) {
-            group[neighbor] = curr_group;
-            res[curr_group].emplace_back(neighbor);
-            cout << "gourp: " << curr_group << " curr man: " << curr_man << " neighbor: " << neighbor << endl;
-            q.push(neighbor);
-          } else if (group[neighbor] != curr_group) {
-            return {{-1}};
-          }
+      int u = q.front();
+      q.pop();
+
+      for (auto v : employee[u]) {
+        if (colors[v] == -1) {
+          colors[v] = 1 - colors[u];
+          q.push(v);
+        } else if (colors[v] == colors[u]) {
+          return {{-1}};
         }
       }
     }
-    
-    vector<vector<int>> ans;
-    for (auto &it : res) {
-      ans.push_back(it.second);
+
+    vector<vector<int>> res(2);
+    for (int i = 0; i < n; ++i) {
+        res[colors[i]].push_back(i);
     }
-    return ans;
+    // 编号天然递增，无需再排序
+
+    // 字典序最小：让 res[0] 是字典序较小的那个
+    if (res[1] < res[0]) swap(res[0], res[1]);
+
+    return res;
   }
 };
 
@@ -120,26 +161,32 @@ int main() {
   int n;
   cin >> n;
   cin.ignore();
-  vector<vector<int>> employee;
+  vector<vector<int>> employee(n);
   for (int i = 0; i < n; ++i) {
-    string input;
-    getline(cin, input);
-    stringstream ss(input);
-    int tmp;
-    vector<int> tmp_v;
-    while (ss >> tmp) {
-      tmp_v.emplace_back(tmp);
-    }
-    employee.push_back(tmp_v);
+      string line;
+      getline(cin, line);
+      stringstream ss(line);
+      int x;
+      while (ss >> x) {
+          employee[i].push_back(x);
+      }
   }
 
   Solution sol;
-  vector<vector<int>> res = sol.AssignGroups(employee);
+  auto res = sol.AssignGroups(employee);
 
-  for (int i = 0; i < res.size(); ++i) {
-    for (int j = 0; j < res[i].size(); ++j) {
-      cout << res[i][j] << " ";
-    }
-    cout << endl;
+  if (res.size() == 1 && res[0].size() == 1 && res[0][0] == -1) {
+      cout << -1 << endl;
+      return 0;
   }
+
+  for (auto& group : res) {
+      for (int i = 0; i < (int)group.size(); ++i) {
+          cout << group[i];
+          if (i + 1 < (int)group.size()) cout << " ";
+      }
+      cout << endl;
+  }
+  return 0;
 }
+*/

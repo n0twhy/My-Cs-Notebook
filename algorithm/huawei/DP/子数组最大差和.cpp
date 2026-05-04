@@ -57,6 +57,36 @@ N 表示数组1的长度，M 表示数组2的长度。
 */
 
 #include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+  int n, m; cin >> n >> m;
+  vector<int> nums_1(n + 1);
+  vector<int> nums_2(m + 1);
+  nums_1[0] = 0; nums_2[0] = 0;
+
+  for (int i = 1; i <= n; ++i) {
+    cin >> nums_1[i];
+  }
+  for (int i = 1; i <= m; ++i) {
+    cin >> nums_2[i];
+  }
+
+  vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));
+
+  for (int i = 1; i <= n; ++i) {
+    for (int j = 1; j <= m; ++j) {
+      int diff = abs(nums_1[i] - nums_2[j]);
+      dp[i][j] = max({dp[i - 1][j - 1] + diff, dp[i - 1][j], dp[i][j - 1]});
+    }
+  }
+
+  cout << dp[n][m] << endl;
+  
+}
+
+/*
+#include <bits/stdc++.h>
 #include <vector>
 using namespace std;
 
@@ -90,3 +120,5 @@ int main() {
   Solution sol;
   cout << sol.MaxDiffSum(a, b) << endl;
 }
+
+*/

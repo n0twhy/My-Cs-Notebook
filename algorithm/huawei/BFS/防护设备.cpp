@@ -53,3 +53,72 @@
 经过格子的最大辐射值为 3。
 另外，在地图不变的情况下，如果 K=16，输出为 0；如果 K=8，输出为 5。
 */
+
+#include <bits/stdc++.h>
+#include <queue>
+#include <utility>
+#include <vector>
+using namespace std;
+
+int dx[4] = {-1, 1, 0, 0};
+int dy[4] = {0, 0, -1, 1};
+
+int CanIGoThereInK(int defend, vector<vector<int>> &grid) {
+  int n = grid[0].size();
+  vector<vector<bool>> visited(n, vector<bool>(n, false));
+  queue<pair<int, int>> q;
+  q.push({0, 0});
+  visited[0][0] = true;
+  int curr_path = 0;
+
+  while (!q.empty()) {
+    int size = q.size(); 
+    for (int j = 0; j < size; ++j) {
+      auto [x, y] = q.front();
+      q.pop();
+      for (int i = 0; i < 4; ++i) {
+        int cx = x + dx[i];
+        int cy = y + dy[i];
+
+        if (cx >= 0 && cx < n && cy >= 0 && cy < n && grid[cx][cy] <= defend) {
+          if (visited[cx][cy]) continue;
+          if (cx == n - 1 && cy == n - 1) return curr_path;
+          q.push({cx, cy});
+          visited[cx][cy] = true;
+        }
+      }
+    }
+    curr_path++;
+  }
+  return -1;
+}
+
+int main() {
+  int n, k;
+  cin >> n >> k;
+  int right = -1;
+  vector<vector<int>> grid(n, vector<int>(n));
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      cin >> grid[i][j];
+      right = max(right, grid[i][j]);
+    }
+  }
+  int left = max(grid[0][0], grid[n - 1][n - 1]);
+  int res = 0x3f3f3f3f;
+  while (left <= right) {
+    int mid = (left + right) / 2;
+    int curr = CanIGoThereInK(mid, grid);
+
+    if (curr > k || curr == -1) {
+      left = mid + 1;
+      continue;
+    } else {
+      res = min(res, mid);
+      right = mid - 1;
+      continue;
+    }
+  }
+  cout << res << endl;
+  
+}

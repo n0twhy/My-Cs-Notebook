@@ -69,3 +69,53 @@ record=[5,1], threshold=3。
 说明
 不存在满足条件的严重性能逆序对。
 */
+
+#include <bits/stdc++.h>
+#include <vector>
+using namespace std;
+
+int lowbit(int x) {
+  return x & (-x);
+}
+
+void update(vector<int> &tree, int num, int add) {
+  while (num < tree.size()) {
+    tree[num] += add;
+    num += lowbit(num);
+  }
+}
+
+int query(vector<int> &tree, int num) {
+  int sum = 0;
+  while (num > 0) {
+    sum += tree[num];
+    num -= lowbit(num);
+  }
+  return sum;
+}
+  
+int main() {
+  int threshold;
+  cin >> threshold;
+  int n;
+  cin >> n;
+  
+  vector<int> nums(n);
+  int max_num = -1;
+  for (int i = 0; i < n; ++i) {
+    cin >> nums[i];
+    max_num = max(max_num, nums[i]);
+  }
+  
+  vector<int> tree(50000 + 1 + threshold, 0);
+
+  int res = 0;
+
+  for (auto num : nums) {
+    int search = num + threshold;
+    res += query(tree, min(max_num, 50001)) - query(tree, search);
+    update(tree, num, 1);
+  }
+
+  cout << res << endl;
+}

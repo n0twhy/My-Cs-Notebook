@@ -95,7 +95,6 @@ grid[n-1][n-1] != 0
 说明
 地图中存在障碍物阻断路径，两辆车无法相遇，返回 -1。
 */
-
 #include <bits/stdc++.h>
 using namespace std;
 

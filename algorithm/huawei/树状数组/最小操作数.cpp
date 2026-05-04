@@ -75,3 +75,85 @@
 
 按螺旋顺序相邻交换，最少需要 10 次可达目标。
 */
+
+#include <bits/stdc++.h>
+#include <vector>
+using namespace std;
+#define int long long
+
+class Solution {
+private:
+   int lowbit(int x) {
+      return x & (-x);
+   }
+
+   void update(vector<int> &tree, int num, int add) {
+      while (num < tree.size()) {
+         tree[num] += add;
+         num += lowbit(num);
+      }
+   }
+
+   int query(vector<int> &tree, int num) {
+      int sum = 0;
+      while (num > 0) {
+         sum += tree[num];
+         num -= lowbit(num);
+      }
+      return sum;
+   }
+public:
+   int LeastOperateCnt(vector<vector<int>> &grid) {
+      int MOD = 1000000007;
+      int m = grid.size();
+      int n = grid[0].size();
+      
+      int up = 0;
+      int down = m -1;
+      int left = 0;
+      int right = n - 1;
+
+      int res = 0;
+      vector<int> tree(1e6 + 1, 0);
+      while (left <= right && up <= down) {
+         for (int y = left; y <= right; ++y) {
+            res = (res + query(tree, 1e6) - query(tree, grid[up][y])) % MOD;
+            update(tree, grid[up][y], 1);
+         }
+         up++;
+
+         for (int x = up; x <= down; ++x) {
+            res = (res + query(tree, 1e6) - query(tree, grid[x][right])) % MOD;
+            update(tree, grid[x][right], 1);
+         }
+         right--;
+
+         for (int y = right; y >= left; --y) {
+            res = (res + query(tree, 1e6) - query(tree, grid[down][y])) % MOD;
+            update(tree, grid[down][y], 1);
+         }
+         down--;
+
+         for (int x = down; x >= up; --x) {
+            res = (res + query(tree, 1e6) - query(tree, grid[x][left])) % MOD;
+            update(tree, grid[x][left], 1);
+         }
+         left++;
+      }
+      return res;
+   }
+};
+
+signed main() {
+   int n;
+   cin >> n;
+   vector<vector<int>> grid(n, vector<int>(n));
+   for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < n; ++j) {
+        cin >> grid[i][j];
+      }
+   }
+
+   Solution sol;
+   cout << sol.LeastOperateCnt(grid) << endl;
+}

@@ -66,7 +66,9 @@ f b c d e k
 
 #include <bits/stdc++.h>
 #include <climits>
+#include <functional>
 #include <iterator>
+#include <vector>
 using namespace std;
 
 /*class Solution {
@@ -127,7 +129,7 @@ public:
 };
 */
 
-class Solution {
+/*class Solution {
 public:
 	void dfs(char curr, char end, vector<char> &path, vector<bool> &visited, int cost) {
 		if (curr == end) {
@@ -197,4 +199,56 @@ private:
 		for (int i = 0; i < path.size(); ++i) {
 			cout <<path[i] << " ";
 		}
+	}*/
+
+int main() {
+	int n;
+	cin >> n;
+	char start, end;
+	cin >> start >> end;
+	cin.ignore();
+
+	string input;
+	unordered_map<char, vector<pair<char, int>>> graph;
+	while (getline(cin, input)) {
+		if (input == "0000") break;
+		char u, v;
+		int dist;
+		stringstream ss(input);
+		ss >> u >> v >> dist;
+		
+		graph[u].emplace_back(v, dist);
 	}
+	vector<char> curr_path;
+	vector<char> best_path;
+	int best_cost = 0x3f3f3f3f;
+
+	vector<bool> visited(26, false);
+	function<void(char, int)> dfs = [&](char curr, int curr_cost){
+		if (curr == end) {
+			if (curr_cost < best_cost) {
+				best_cost = curr_cost;
+				best_path = curr_path;
+				return;
+			}
+		}
+
+		for (auto [v, dist] : graph[curr]) {
+			if (visited[v - 'a']) continue;
+			visited[v - 'a'] = true;
+			int cost = curr_cost + dist;
+			curr_path.emplace_back(v);
+			dfs(v, cost);
+			curr_path.pop_back();
+			visited[v - 'a'] = false;
+		}
+	};
+
+	curr_path.emplace_back(start);
+	dfs(start, 0);
+	
+	for (int i = 0; i < best_path.size(); ++i) {
+		cout << best_path[i] << " ";
+	}
+
+}
