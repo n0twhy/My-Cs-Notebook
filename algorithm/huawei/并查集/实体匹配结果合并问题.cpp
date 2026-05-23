@@ -49,6 +49,7 @@
 有两组匹配结果，即 "1 2" 和 "2 3"，存在重复实体 "2"，故可以合并为 "1 2 3"。
 */
 
+#include <algorithm>
 #include <bits/stdc++.h>
 #include <initializer_list>
 #include <vector>
@@ -127,4 +128,5 @@ int main() {
   }
 
 }
+
 

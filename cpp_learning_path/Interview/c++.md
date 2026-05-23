@@ -17,25 +17,28 @@ int const *b：b本身不能被修改
 `reinterpret_cast` 及其危险，bit级重新解释
 
 # 内存分区：全局、静态、栈、堆
+```
 高地址
 +---------------------------+
 |          stack            |  ← 局部变量、函数栈帧（一般向低地址增长）
 |            ·              |
 |            ·              |
 +---------------------------+
-|          (空洞)            |
+|                           |
 |            ·              |
 +---------------------------+
-|          heap             |  ← new/malloc（一般向高地址增长）
+|           heap            |  ← new/malloc（一般向高地址增长）
 +---------------------------+
-|   .bss（未初始化全局/静态）  |
+|          .bss             |  ←（未初始化全局/静态）
 +---------------------------+
-|   .data（已初始化全局/静态） |
+|          .data            |  ←（已初始化全局/静态）
 +---------------------------+
-|   .text（机器码，常数区等）  |
+|          .text            |  ←（机器码，常数区等）
 +---------------------------+
 低地址
+```
 
+```
 int g = 1; //.data 已初始化全局变量
 int g2; //.bss 未初始化全局变量
 static int s = 2; //.data 静态存储
@@ -46,11 +49,14 @@ void foo() {
   int *p = new int(5); // p在stack，*p在heap
   delete p;
 }
-
+```
 ## static vs 全局变量
 - static全局变量只能在本文件内被访问，作用域是文件内部
 而普通全局变量，可以通过extern访问，作用域是整个程序
 - static在类中声明的成员属于类本身而不是对象，被所有对象共享，且不可通过实例直接访问
+
+### extern int a
+extern是声明，不是定义，告诉编译器这个符号在别的编译单元，链接期再去找
 
 ## sizeof() 和 strlen
 - sizeof返回类型或变量所占字节数，测的是分配大小，strlen测的是实际大小
@@ -68,7 +74,7 @@ define使用的是代码段的空间
 define还可以定义常量，typedef只能重新为类型取名
 
 ## volatile
-有些值可能会被该线程以外的程序改变，比如另一个线程，或者硬件中断来改变，但是如果不用volatile，编译器会对其进行优化，导致在寄存器里运行
+有些值可能会被该线程以外的程序改变，比如另一个线程，或者硬件中断来改变，但是如果不用`volatile`，编译器会对其进行优化，导致在寄存器里运行
 但是本身并不原子
 ### 原子性
 硬件级指令，把对应内存锁死，决不允许插队
@@ -98,12 +104,15 @@ define还可以定义常量，typedef只能重新为类型取名
 - 带虚函数的类编译器会为这个对象生成一张虚函数表，这是一张函数指针数组，每个指针指向一个当前类型该虚函数的最终实现，同时还会有一个指向虚函数表的虚指针
 ### 重载  重写
 同名函数，不同传参就是重载
-override就是，同名函数，同样的传参，重写
+`override`就是，同名函数，同样的传参，重写
+
+#### 重载底层是怎么实现的
 
 ## vptr vtable
 vptr在栈上，vtable在只读数据段，程序级别唯一
 
 # 类
+```
 class Foo {
   Foo(); //构造
   ~Foo(); //析构
@@ -112,6 +121,7 @@ class Foo {
   Foo(Foo&&); //移动构造
   Foo& operator(Foo&&); //移动赋值
 }
+```
 
 一个都不写，生成什么？
 6个default
@@ -142,7 +152,12 @@ why
 - 移动赋值 (operator=(Type&&))：已经存在的对象换新值时调用。必须先释放自己原本持有的资源（如 Unpin），再去偷，否则会导致内存/资源泄漏。
 - Swap 惯用法：移动赋值的最佳写法是用 std::swap，将旧资源直接塞给右值，让它在析构时顺手替你释放（借刀杀人）。构造与赋值的判别法则（看 = 号左边）：有类型名（如 Type a = b;）：伴随声明的初始化 $\rightarrow$ 调用构造函数（拷贝/移动）。无类型名（如 a = b;）：老对象换值 $\rightarrow$ 调用赋值运算符（拷贝/移动）。
 #### noexcept
-移动构造和移动赋值必须加上 noexcept 关键字。若不加，在如 std::vector 扩容搬运对象时，标准库为防抛出异常导致状态损坏，会拒绝移动，强制退化为拷贝，极易引发浅拷贝导致的 Double Free/Unpin。
+移动构造和移动赋值必须加上 noexcept 关键字。
+原因是`vector`等容器在扩容搬运元素时，会用 `move_if_noexcept` 选择策略：
+- 若 move 构造是 noexcept -> 使用 move (高效)
+- 若 move 构造可能抛异常 -> 退化为 copy (保证强异常安全，避免搬运中途抛异常导致老 buffer 已损坏，新的 buffer 未建成的状态无法回滚)
+
+不加 noexcept 不会引发内存错误，但会**让你精心写的移动语义在扩容时失效**，性能退化为拷贝
 
 #### 万能引用
 `T&&` 这个既能接受右值也能接受左值
@@ -157,7 +172,7 @@ why
 #### 完美转发
 一个右值一旦有了名字，那他就变成了左值
 函数内部传参的时候，这个传进来的右值其实是有名字的，这个变量在这个函数体里面就是左值，如果这时候把这个变量传给下一个函数，他就不再是右值了，引发不必要的拷贝
-std::forward会保留原来的属性
+`std::forward`会保留原来的属性
 
 ### 深拷贝 浅拷贝
 - 深拷贝：复制一份，再赋值
@@ -168,25 +183,26 @@ std::forward会保留原来的属性
 不能用memcmp比较，因为类存在内存对齐，会有一些闲置空间是系统随机padding的，其具体内容每个类都不一样
 
 # 容器 迭代器
-- 序列式容器: vector  deque  list  array  
-- 有序关联容器：sset  multiset  map  multimap
-- 无序关联容器：unordered_set unordered_map  
-- 容器适配器：stack  queue  priority_queue
+- 序列式容器: `vector`  `deque`  `list`  `array`  
+- 有序关联容器：`set`  `multiset`  `map`  `multimap`
+- 无序关联容器：`unordered_set` `unordered_map`  
+- 容器适配器：`stack`  `queue`  `priority_queue`
 
 ## string
 - 大小通常为32字节：堆指针，size，capacity，预先分配15字节数组(不然小字符串每次都要new，开销很大)，和1个flag
+- 扩容：申请一个更大的内存，然后拷贝过去
 - 性能优化手段：提前reserve分配好足够大的capacity，这样就不会频繁扩容了
 ### clear
 s.clear没有释放内存，而是size设置为0了
 
 ## vector(面试重点)
-- 24字节，内部包含3个指针，_M_start,_M_finish,_M_end_of_storage
+- 24字节，内部包含3个指针，`_M_start`,`_M_finish`,`_M_end_of_storage`
 ### 扩容
 - vector/string 插入因为扩容，所有数据搬家，导致所有迭代器失效，删除中间元素的话会使后面的迭代器失效
 - erase(it)会返回下一个迭代器
 ### 释放分配内存
 和string一样，clear绝对不会清空内存，只是把size设为1
-如果要释放，用临时对象swap释放vector内存
+如果要释放，用临时对象`swap`释放`vector`内存
 ### push_back emplace_back
 push_back是复制一份副本，将副本放在容器后
 emplace_back是直接在容器后构造，避免一次拷贝
@@ -278,13 +294,19 @@ new是类型安全的，malloc返回void* 指针
 m.lock()底层调用pthread_mutex_lock
 先做一次CAS(mutex_state, 0, 1)，如果锁是空的，直接抢到
 如果没有抢到，state标志位有竞争
-调用futex(addr, FUTEX_WAIT, expected_value) syscall
+调用`futex(addr, FUTEX_WAIT, expected_value)` 这个是 `syscall`
 
 进入内核态：
 检查addr是否为expected_value
 内核把task挂到一个哈希桶里，
-线程状态由task_running改为task_interruptible
+线程状态由`task_running`改为`task_interruptible`
 调用schedule,让出CPU
+
+## 那么调用unlock发生了什么
+
+`futex(addr, FUTEX_WAKE, 1)`
+- 内核查表找人，内核维护了一个哈希桶，根据锁的内存地址，找到挂载着等待线程的那个链表取出头部唤醒 (把task_interruptible 改成 task_running)
+- 把取出的这个线程扔进CPU调度队列去等时间片
 
 ## lock_guard unique_lock scope_lock
 单锁单场景：最简单，`lock_guard`
@@ -293,13 +315,14 @@ m.lock()底层调用pthread_mutex_lock
 
 ## condition_variable
 ### 为什么必须要mutex -> 丢失唤醒
-因为为了避免丢失唤醒。比如条件是queue.empty()，被唤醒了，结果线程B进来写了queue，检查queue非空又睡了，丢失唤醒
+因为为了避免丢失唤醒。比如条件是`q`ueue.empty()`，被唤醒了，结果线程B进来写了queue，检查queue非空又睡了，丢失唤醒
 
 ### 虚假唤醒
 内核因为某些信号，调度器扰动，可能会导致wait提前返回
-所以是while 而不是if
+所以是while而不是if
 
 ## CAS
+```
 bool CAS(T* addr, T expected, new_value) {
   if (*addr = expected) {
     *addr = new_value;
@@ -307,16 +330,20 @@ bool CAS(T* addr, T expected, new_value) {
   }
   return false;
 }
+```
 
 ### 盲区
 CAS不能确定中间他有没有做过改动，比如expected = 1，如果本身已经改成2又变回来成1,了，CAS识别不出来
 
 # lambda
 本质：编译器生成的匿名类
+```
 int x = 10;
 auto f = [x](int y) { return x + y; };
 f(5);
+```
 对于编译器，本质上等于
+```
 class __Lambda_xxx {
 private: 
   int x_; // 捕获的变量
@@ -326,9 +353,120 @@ public:
     return x + y;
   }
 };
+```
 [捕获列表](参数列表) mutable -> 返回类型 {}
 [a, b]拷贝捕获
 [&a, &b]引用捕获
 [=]按值捕获所有用到的外部变量
 [&]按引用捕获所有用到的外部变量
 [a, &b]混着来
+
+# virtual
+
+## vtable
+**vtable**本质上是一个函数指针数组，按顺序记录了当前这个类所有虚函数的真实内存地址。如果派生类重写了某个虚函数，那么派生类vtable里对应位置的指针，就替换成新的
+- 编译阶段生成
+- 存放在只读数据段
+- 类级别，独一无二，同一个类都看这张表
+
+## vptr
+- 运行阶段生成。在对象的构造函数初始化时，编译器会自动将vptr指向该类对应的vtable
+- 存放在对象所占内存的最前面
+
+## how does it work
+```
+Base* p = new Derived(); // 基类指针指向派生类对象
+p->func();               // func() 是虚函数
+```
+
+三步走
+- 找指针：编译器看到`p->func()`是个虚函数调用，先去p指向的内存块(derived对象)找到vptr(也是derived的)
+- 查菜单：顺着vptr的vtable，找到derived类的专属vtable
+- 跳转
+
+这里是先构造基类，再构造派生类
+当基类构造函数执行的时候，派生类的成员还没有被初始化
+所以这时候千万不能多态。
+
+### 静态绑定  动态绑定
+```
+class Animal {
+public:
+    virtual void speak() { cout << "..." << endl; }
+};
+
+class Dog : public Animal {
+public:
+    void speak() override { cout << "汪!" << endl; }
+};
+
+class Cat : public Animal {
+public:
+    void speak() override { cout << "喵!" << endl; }
+};
+
+void makeSound(Animal* a) {
+    a->speak();
+}
+
+Animal a;
+Dog d;
+a = d;        // 注意:不是指针,是对象赋值
+a.speak();    // 这里打印什么?
+```
+编译期如果不用指针，只是单纯赋值，编译期就知道他到底是什么类型的了，静态绑定
+如果是指针或者引用，在编译期看来，他只是一个地址，不确定类型，得去运行期动态绑定这个地址
+这就是虚函数的实现前提
+
+
+
+
+# 程序
+Preprocessing -> Compilation -> Assembly -> linking
+
+## 预处理
+- 头文件展开：预处理器找到 `#include` 后面指定的头文件，然后把头文件的所有文本内容，复制到当前cpp文件中
+- 宏替换： `#define` ，不会做任何类型检查和计算，单纯的查找和替换
+- 删除注释
+
+## 编译
+把预处理后的c++代码翻译成汇编语言
+
+## 汇编
+把汇编代码翻译成计算机真正能执行的机器码，即二进制指令
+生成目标文件
+
+- 构建符号表
+会把定义的函数，全局变量，引用的外部名字这些信息列成一张表
+
+## 链接
+
+把所有分散的半成品零件(.o目标文件)以及系统库，组装拼装到一起，生成最终的可执行文件
+- 合并段和分配地址：每个.o文件都有自己的代码段和数据段，参与链接的就全部合并到一起
+- 符号解析：符号表
+- 重定位：符号解析成功以后，链接器知道了每个函数和变量的最终绝对地址
+
+### 静态链接 动态链接
+- 链接方式：静态链接是直接将库复制到可执行文件中，而动态链接则是引用，在运行时由操作系统动态加载
+- 文件大小：静态使可执行文件的大小增加，动态因为是引用，则不会
+- 内存占用：库在执行时会完整加载到内存中，占用固定的内存空间，动态链接库只有被运行时才会被加载
+- 可扩展性：动态更好，可以在不修改可执行文件的情况下添加新的库文件。
+
+# 模板
+```
+template <typename T>
+T add(T a, T b) { return a + b; }
+
+int main() {
+    add(1, 2);       // ①
+    add(1.5, 2.5);   // ②
+    add(1, 2);       // ③ 注意:又调了一次 int 版本
+}
+```
+
+# 内存池 对象池
+- 内存池： 预申请一大块内存自己切分管理，省掉了malloc的系统调用和可能的内存碎片
+- 对象池：更进一步，构造和析构以及首次写入的page fault都省了
+
+我自己的tinyrpc就已经实现了一个协程池，优先复用已经触发过物理页分配的协程栈，避免新协程首写时缺页中断引发的开销。
+

@@ -62,3 +62,64 @@ url1, url2, url3, ..., urlX，元素允许重复。
 输出
 1 1 1 1 1 1 1 1 1 1 0 1 0 1 0
 */
+
+#include <bits/stdc++.h>
+#include <functional>
+#include <queue>
+#include <vector>
+using namespace std;
+
+int main() {
+  int n, x; cin >> n >> x;
+  vector<int> requests(x);
+  for (int i = 0; i < x; ++i) {
+    cin >> requests[i];
+  }
+
+  int y;
+  cin >> y;
+  unordered_map<int, int> urls;
+  while (y--) {
+    int url_idx, ttl;
+    cin >> url_idx >> ttl;
+    urls[url_idx] = ttl;
+  }
+
+  unordered_set<int> cache;
+  priority_queue<int, vector<int>, less<>> pq_big;
+  function<bool(const vector<int> &, const vector<int> &)> cmp = [](const vector<int> &a, const vector<int> &b){
+    if (a[1] != b[1]) return a[1] > b[1];
+    return a[2] > b[2];
+  };
+  priority_queue<vector<int>, vector<vector<int>>, decltype(cmp)> pq_little(cmp);
+
+  for (int i = 0; i < requests.size(); ++i) {
+    while (!pq_little.empty() && pq_little.top()[1] <= i) {
+      int delete_url = pq_little.top()[0];
+      //cout << "it's time: " << i << endl;
+      cache.erase(delete_url);
+      pq_little.pop();
+    }
+
+    int request_url = requests[i];
+    if (cache.count(request_url)) {
+      cout << "0" << " ";
+    } else {
+      cout << "1" << " ";
+      int ttl = 5;
+      if (urls.count(requests[i])) {
+        ttl = urls[request_url];
+      }
+
+      if (pq_little.size() == n) {
+        int least_url = pq_little.top()[0];
+        pq_little.pop();
+        cache.erase(least_url);
+      }
+      pq_little.push({request_url, ttl + i, i});
+      cache.insert(request_url);
+      
+    }    
+  }
+}
+

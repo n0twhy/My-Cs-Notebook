@@ -60,3 +60,95 @@ kaka 10000000000 10000000001 10000000002 10000000003
 
 因此 kaka 一共有四个号码并按 ASCII 码升序排序结果是 10000000000 10000000001 10000000002 10000000003
 */
+
+#include <bits/stdc++.h>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+using namespace std;
+
+vector<int> parent;
+
+void init() {
+  for (int i = 0; i < parent.size(); ++i) {
+    parent[i] = i;
+  }
+}
+
+int find(int x) {
+  return parent[x] == x ? x : parent[x] = find(parent[x]);
+}
+
+void unit(int x, int y) {
+  parent[find(x)] = find(y); 
+}
+
+int main() {
+  int n; cin >> n;
+  int count_id = 0;
+  unordered_map<string, int> mp;
+  vector<vector<string>> list(n);
+  cin.ignore();
+  for (int i = 0; i < n; ++i) {
+    string input;
+    getline(cin, input);
+    stringstream ss(input);
+    string name;
+    ss >> name;
+    list[i].emplace_back(name);
+    string number;
+    while (ss >> number) {
+      if (!mp.count(number)) {
+        mp[number] = count_id++;
+      }
+      list[i].emplace_back(number);
+    }
+  }
+  
+  parent.resize(count_id);
+  init();
+
+  for (auto v : list) {
+    for (int i = 1; i < v.size() - 1; ++i) {
+      unit(mp[v[i]], mp[v[i + 1]]);
+    }
+  }
+  
+  unordered_map<int, pair<string, set<string>>> group;
+  vector<vector<string>> res;
+  for (int i = 0; i < (int)list.size(); ++i) {
+    for (int j = 1; j < (int)list[i].size(); ++j) {
+        //cerr << "i=" << i << " j=" << j << " num=" << list[i][j] << flush;
+        int id = mp[list[i][j]];
+        //cerr << " id=" << id << flush;
+        int root = find(id);
+        //cerr << " root=" << root << flush;
+        auto &g = group[root];
+        //cerr << " got_g" << flush;
+        if (g.first.empty()) g.first = list[i][0];
+        else g.first = min(g.first, list[i][0]);
+        //cerr << " set_name" << flush;
+        g.second.insert(list[i][j]);
+        //cerr << " inserted" << endl;
+    }
+}
+//cerr << "loop done" << endl;
+  for (auto &[idx, p] : group) {
+    auto &[name,numbers] = p;
+    vector<string> tmp;
+    tmp.emplace_back(name);
+    for (auto number : numbers) {
+      tmp.emplace_back(number);
+    }
+    res.emplace_back(tmp);
+  }
+
+  sort(res.begin(), res.end());
+
+  for (int i = 0; i < res.size(); ++i) {
+    for (int j = 0; j < res[i].size(); ++j) {
+      cout << res[i][j] << " ";
+    }
+    cout << "\n";
+  }
+}
